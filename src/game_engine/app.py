@@ -138,4 +138,3 @@ class GameApp:
             scene = self._scene_stack.pop()
             scene.on_exit()
             scene.app = None
-
