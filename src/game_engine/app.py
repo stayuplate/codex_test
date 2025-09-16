@@ -82,13 +82,16 @@ class GameApp:
         self._running = False
 
     def run(self) -> None:
+        print("[DEBUG] GameApp.run() gestartet")
         if not self._scene_stack:
+            print("[DEBUG] Keine Szenen im Stack!")
             raise RuntimeError("No scenes have been pushed onto the app.")
 
         self._running = True
         prev_time = time.perf_counter()
         first_scene = self.current_scene()
         if first_scene is not None:
+            print("[DEBUG] Erste Szene vorhanden, render() wird aufgerufen")
             first_scene.render()
 
         try:
