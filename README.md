@@ -1,7 +1,9 @@
 Game Engine
 
 Welcome to the Game Engine repository!
-This project is an ongoing effort to build a lightweight yet robust game engine designed for creating simple and fun games. Whether you're a beginner dipping your toes into game development or an experienced developer looking to create small-scale games, this engine is here to help you.
+This project is an ongoing effort to build a lightweight yet robust game engine designed for creating simple and fun games. Whet
+her you're a beginner dipping your toes into game development or an experienced developer looking to create small-scale games, t
+his engine is here to help you.
 Features
 
 This game engine is under development, but here are some of the features you'll have access to (or can look forward to):
@@ -57,7 +59,8 @@ To create your game using this engine, you simply need to:
 
     Set up your game environment: Extend the provided base classes (e.g., GameApp, Scene) to define your game's behavior.
 
-    Design gameplay mechanics: Add and script your game objects using the engine's modular systems (e.g., physics, rendering, audio).
+    Design gameplay mechanics: Add and script your game objects using the engine's modular systems (e.g., physics, rendering, au
+dio).
 
     Run and test your game: Compile and execute your game to bring your ideas to life!
 
@@ -91,6 +94,16 @@ int main() {
     game.Run();
     return 0;
 }
+
+Playable Demos
+----------------
+
+Two text-based demos ship with the repository to showcase the engine in action:
+
+* ``examples/first_game.py`` – **Crystal Collector**, a grid adventure where you gather crystals while avoiding hazards.
+* ``examples/lantern_maze.py`` – **Lantern Maze**, a fog-of-war puzzle that asks you to capture glowing lights before escaping.
+
+Run either script with ``python`` to try them out.
 
 Directory Structure
 plaintext
