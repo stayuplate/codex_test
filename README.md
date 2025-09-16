@@ -65,6 +65,7 @@ Detailed guides and examples will be provided soon, under the /docs and /example
 Example
 
 Here’s an example of what a simple "Hello, Game World!" game might look like using our engine (in C++):
+
 C++
 
 #include "GameEngine.h"
@@ -79,7 +80,7 @@ public:
     void OnUpdate(float deltaTime) override {
         // Update game logic here.
     }
-    
+
     void OnRender() override {
         DrawText(100, 100, "Hello, Game World!");
     }
