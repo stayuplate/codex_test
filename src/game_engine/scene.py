@@ -17,8 +17,9 @@ class Scene:
         pass
 
 class TextScene(Scene):
-    def __init__(self, name: str = "TextScene"):
+    def __init__(self, name: str = "TextScene", prompt: str = "> "):
         super().__init__(name=name)
+        self.prompt = prompt
 
     def render(self) -> None:
         print("[DEBUG] render() aufgerufen")
