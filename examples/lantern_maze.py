@@ -143,45 +143,69 @@ class LanternMazeScene(TextScene):
                     self._discovered.add((nx, ny))
 
     def _describe_torches(self) -> str:
+        # Farben
+        YELLOW = "\033[93m"
+        RESET = "\033[0m"
         remaining = len(self._torches)
         captured = self.total_torches - remaining
         bar_length = max(10, self.total_torches * 3)
         if self.total_torches == 0:
-            return "No lights required to leave."
+            return f"{YELLOW}No lights required to leave.{RESET}"
         ratio = captured / self.total_torches
         lit = int(ratio * bar_length)
-        bar = "#" * lit + "." * (bar_length - lit)
-        return f"Lights: [{bar}] {captured}/{self.total_torches} captured"
+        bar = f"{YELLOW}" + "🕯️" * lit + f"{RESET}" + "." * (bar_length - lit)
+        return f"{YELLOW}Lights: [{bar}] {captured}/{self.total_torches} captured{RESET}"
 
     def _format_tile(self, position: Position) -> str:
+        # Farben
+        PLAYER = "\033[96m"  # Cyan
+        TORCH = "\033[93m"   # Gelb
+        EXIT = "\033[92m"    # Grün
+        EXIT_LOCKED = "\033[91m" # Rot
+        WALL = "\033[90m"    # Dunkelgrau
+        VISITED = "\033[37m" # Hellgrau
+        RESET = "\033[0m"
         if position not in self._discovered:
             return " "
         if position == self.player:
-            return "@"
+            return f"{PLAYER}🧑‍🦯{RESET}"
         if position in self._torches:
-            return "*"
+            return f"{TORCH}🕯️{RESET}"
         if position == self.exit:
             if self._torches:
-                return "e"  # dim exit when sealed
-            return "E"
+                return f"{EXIT_LOCKED}🔒{RESET}"
+            return f"{EXIT}🚪{RESET}"
         if self._is_wall(position):
-            return "#"
+            return f"{WALL}⬛{RESET}"
         if position in self._visited:
-            return "."
+            return f"{VISITED}·{RESET}"
         return " "
 
     # -- Rendering -------------------------------------------------------
     def get_display_text(self) -> str:
+        # Farben
+        TITLE = "\033[95m"
+        RESET = "\033[0m"
+        # ASCII-Banner
+        banner = (
+            f"{TITLE} _                _                 _   _                 \n"
+            f"| |    __ _ _ __   __| | ___  _ __ __ _| |_(_) ___  _ __  ___ \n"
+            f"| |   / _` | '_ \ / _` |/ _ \| '__/ _` | __| |/ _ \| '_ \/ __|\n"
+            f"| |__| (_| | | | | (_| | (_) | | | (_| | |_| | (_) | | | \__ \\\n"
+            f"|_____\__,_|_| |_|\__,_|\___/|_|  \__,_|\__|_|\___/|_| |_|___/\n"
+            f"{RESET}"
+        )
         border = "+" + "-" * self.width + "+"
-        rows: List[str] = [border]
+        rows: List[str] = [banner, border]
         for y in range(self.height):
             row_tiles = [self._format_tile((x, y)) for x in range(self.width)]
             rows.append("|" + "".join(row_tiles) + "|")
         rows.append(border)
         rows.append(self._describe_torches())
-        rows.append(f"Turns taken: {self.turn_count}")
-        rows.append(self.message)
-        rows.append("Commands: W/A/S/D to move, R to restart, Q to quit.")
+        # Farbige Statuszeile
+        rows.append(f"\033[94mTurns taken: {self.turn_count}{RESET}")
+        rows.append(f"\033[92m{self.message}{RESET}")
+        rows.append("\033[90mCommands: W/A/S/D to move, R to restart, Q to quit.\033[0m")
         return "\n".join(rows)
 
     # -- Input handling --------------------------------------------------
