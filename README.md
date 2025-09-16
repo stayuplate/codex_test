@@ -1,76 +1,100 @@
-Game Engine
 
-Welcome to the Game Engine repository!
-This project is an ongoing effort to build a lightweight yet robust game engine designed for creating simple and fun games. Whet
-her you're a beginner dipping your toes into game development or an experienced developer looking to create small-scale games, t
-his engine is here to help you.
-Features
+<p align="center">
+    <img src="https://img.shields.io/badge/engine-alpha-blueviolet?style=for-the-badge" alt="Engine Status"/>
+    <img src="https://img.shields.io/badge/python-3.8%2B-green?style=for-the-badge" alt="Python Version"/>
+    <img src="https://img.shields.io/badge/license-MIT-yellow?style=for-the-badge" alt="License"/>
+</p>
 
-This game engine is under development, but here are some of the features you'll have access to (or can look forward to):
+<h1 align="center">🎮 Game Engine</h1>
 
-    Cross-platform support: Write your game once and run it across multiple platforms.
-    2D Asset Management: Easy integration of sprites, textures, and animations.
-    Event System: Handle user input like keyboard and mouse events with minimal boilerplate.
-    Physics Engine: Simple 2D physics to handle basic movement, collision detection, and interactions.
-    Audio System: Support for background music and sound effects.
-    Scene Management: Easily organize and transition between scenes (e.g., menu screens, gameplay, and game-over screens).
-    Extensible: Designed with modularity in mind—extend it to add your custom features.
+<p align="center">
+    <b>Leichtgewichtig. Modular. Spaßig.</b><br>
+    <i>Baue kleine Spiele mit großer Wirkung!</i>
+</p>
 
-(Note: These features reflect the goals of the project and may not yet all be implemented.)
-Getting Started
-Prerequisites
+---
 
-Before you begin, ensure you have the following installed on your machine:
+Willkommen im Game Engine Repository!<br>
+Dieses Projekt ist ein laufender Versuch, eine leichtgewichtige und dennoch robuste Game Engine für einfache, spaßige Spiele zu bauen. Egal ob Einsteiger oder erfahrener Entwickler – hier kannst du loslegen!
 
-    C++ (preferred) or another supported programming language
-    Compiler (e.g., GCC, Clang, Microsoft Build Tools, etc.)
-    CMake (optional): For building and generating the project, if applicable.
-    (Additional dependencies will be listed as needed for specific modules.)
+---
 
-Installation
+## ✨ Features
 
-    Clone the repository:
-    bash
+
+Diese Engine befindet sich in Entwicklung, aber das erwartet dich (oder ist geplant):
+
+
+| 🌍 Plattformen | 🖼️ 2D Assets | 🎹 Audio | ⚡ Events | 🧲 Physik | 🗺️ Szenen | 🔌 Erweiterbar |
+|:-------------:|:------------:|:--------:|:--------:|:---------:|:--------:|:--------------:|
+| ✔️            | ✔️           | ✔️       | ✔️       | ✔️        | ✔️       | ✔️             |
+
+<details>
+<summary>Geplante Features</summary>
+
+- Cross-platform support
+- 2D Asset Management
+- Event System
+- Physics Engine
+- Audio System
+- Scene Management
+- Extensible
+</details>
+
+
+<sub><i>Hinweis: Viele Features sind noch in Arbeit!</i></sub>
+
+---
+
+## 🚀 Schnellstart
+
+### Voraussetzungen
+
+
+* Python 3.8+
+* (Optional) C++ Compiler & CMake für native Module
+* Siehe weitere Abhängigkeiten in den jeweiligen Modulen
 
 git clone https://github.com/your_username/game-engine.git
 
-Navigate into the project directory:
-bash
+### Installation
 
+```bash
+git clone https://github.com/your_username/game-engine.git
 cd game-engine
+```
 
-Build the Engine:
-Build instructions will depend on the specific language and tools you're using.
-Example (with CMake):
-bash
+### Engine bauen (optional)
+```bash
+mkdir build
+cd build
+cmake ..
+make
+```
 
-    mkdir build
-    cd build
-    cmake ..
-    make
+### Beispiel ausführen
+```bash
+python examples/first_game.py
+```
 
-    Run an example or test:
-    Check the /examples directory for demo projects you can run to see the engine in action.
 
-Usage
-Creating Your First Game
+---
 
-To create your game using this engine, you simply need to:
+## 🕹️ Eigene Spiele erstellen
 
-    Set up your game environment: Extend the provided base classes (e.g., GameApp, Scene) to define your game's behavior.
-
-    Design gameplay mechanics: Add and script your game objects using the engine's modular systems (e.g., physics, rendering, au
 dio).
 
-    Run and test your game: Compile and execute your game to bring your ideas to life!
+1. **Umgebung aufsetzen:** Erweitere die Basisklassen (`GameApp`, `Scene` etc.) für dein Spiel.
+2. **Gameplay designen:** Füge Objekte und Logik mit den Modulsystemen hinzu (Physik, Rendering, Audio ...).
+3. **Testen & Spaß haben:** Starte dein Spiel und bring deine Ideen zum Leben!
 
-Detailed guides and examples will be provided soon, under the /docs and /examples folders.
-Example
+👉 Ausführliche Anleitungen folgen bald unter `/docs` und `/examples`.
 
-Here’s an example of what a simple "Hello, Game World!" game might look like using our engine (in C++):
+---
 
-C++
+## 🧩 Beispiel: Hello, Game World!
 
+```cpp
 #include "GameEngine.h"
 
 class MyGame : public GameApp {
@@ -79,11 +103,9 @@ public:
         // Initialize game objects, load assets, etc.
         AddGameObject(new Player());
     }
-
     void OnUpdate(float deltaTime) override {
         // Update game logic here.
     }
-
     void OnRender() override {
         DrawText(100, 100, "Hello, Game World!");
     }
@@ -94,60 +116,82 @@ int main() {
     game.Run();
     return 0;
 }
+```
 
-Playable Demos
-----------------
 
-Two text-based demos ship with the repository to showcase the engine in action:
+---
 
-* ``examples/first_game.py`` – **Crystal Collector**, a grid adventure where you gather crystals while avoiding hazards.
-* ``examples/lantern_maze.py`` – **Lantern Maze**, a fog-of-war puzzle that asks you to capture glowing lights before escaping.
+## 🕵️‍♂️ Playable Demos
 
-Run either script with ``python`` to try them out.
+| Demo | Beschreibung |
+|------|--------------|
+| `examples/first_game.py` | 🟦 **Crystal Collector**<br>Ein Grid-Abenteuer: Sammle Kristalle, meide Gefahren! |
+| `examples/lantern_maze.py` | 🟡 **Lantern Maze**<br>Nebellabyrinth: Fange Lichter, finde den Ausgang! |
 
-Directory Structure
-plaintext
+Starte ein Demo mit:
+```bash
+python examples/first_game.py
+```
 
 game-engine/
+
+---
+
+## 🗂️ Projektstruktur
+
+```plaintext
+game-engine/
 │
-├── src/                # Core engine source code
-├── examples/           # Example projects and sample games
-├── assets/             # Shared assets (textures, sound, etc.)
-├── docs/               # Documentation and tutorials
-├── tests/              # Unit and integration tests
-├── build/              # Build output directory (excluded from version control)
-└── README.md           # Project overview (this file)
+├── src/         # Engine-Quellcode
+├── examples/    # Beispielspiele
+├── assets/      # Gemeinsame Assets
+├── docs/        # Dokumentation
+├── tests/       # Tests
+├── build/       # Build-Output (ignored)
+└── README.md    # Übersicht
+```
 
-Contributing
 
-We welcome contributions of all kinds! Here's how you can help:
+---
 
-    Report bugs: Found a bug? Let us know by opening an issue.
-    Request features: Have an idea for a new feature? Share it in the Discussions or Issues tab.
-    Submit Pull Requests: Whether it's fixing bugs, optimizing code, or adding new features, we appreciate your efforts.
+## 🤝 Mitmachen
 
-Before contributing, please review the Contributing Guidelines and adhere to the Code of Conduct.
-Roadmap
+Wir freuen uns über jeden Beitrag!<br>
+**So kannst du helfen:**
 
-Here’s a high-level view of upcoming goals and features for this project:
+- Fehler melden (Issues)
+- Feature-Wünsche äußern (Discussions/Issues)
+- Pull Requests einreichen (Bugfixes, Features, Optimierungen)
 
-    Implement sprite rendering
-    Add event-driven input handling
-    Create a basic physics engine (collisions, gravity, etc.)
-    Build a UI framework (buttons, labels, etc.)
-    Support loading external assets (e.g., JSON-level files, Tiled maps)
-    Expand documentation and community resources
+Bitte lies vorher die Contributing Guidelines und halte dich an den Code of Conduct.
 
-License
+---
 
-This project is licensed under the MIT License.
-You are free to use, modify, and distribute this engine for personal or commercial use.
-Support
+## 🛣️ Roadmap
 
-If you have questions or need help getting started, feel free to reach out by:
+- Sprite-Rendering
+- Eventgesteuerte Eingabe
+- Physik-Engine (Kollisionen, Gravitation)
+- UI-Framework (Buttons, Labels ...)
+- Externe Assets laden (JSON, Tiled ...)
+- Mehr Doku & Community
 
-    Opening an Issue in this repo.
-    Posting in the Discussions tab.
-    Contacting us through [your email/website/socials].
 
-Happy coding! 🎮 Let's make some amazing games together.
+---
+
+## 📝 Lizenz
+
+MIT – frei für private & kommerzielle Nutzung.
+
+---
+
+## 💬 Support
+
+Fragen? Probleme?<br>
+Öffne ein Issue, poste in Discussions oder kontaktiere uns direkt.
+
+---
+
+<p align="center">
+    <b>Happy coding! 🎮<br>Let’s make some amazing games together.</b>
+</p>
