@@ -63,6 +63,7 @@ class CrystalCollectorScene(TextScene):
         energy: int = 18,
         seed: Optional[int] = None,
     ) -> None:
+        print("[DEBUG] CrystalCollectorScene.__init__ wird aufgerufen")
         super().__init__(name="CrystalCollector")
         if width < 3 or height < 3:
             raise ValueError("The board must be at least 3x3 in size.")
