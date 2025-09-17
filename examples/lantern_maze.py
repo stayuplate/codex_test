@@ -109,11 +109,13 @@ class LanternMazeScene(TextScene):
         num_traps: int = 2,
         rng_seed: Optional[int] = None,
     ) -> None:
-        self.prompt = "Move:"
-        self.border = True
-        self.color = "\033[95m"  # Lila
-        self.icon = "\U0001F56F"  # Laterne-Emoji
-        self.name = "Lantern Maze"
+        super().__init__(
+            name="Lantern Maze",
+            prompt="Move:",
+            color="\033[95m",  # Lila
+            border=True,
+            icon="\U0001F56F",  # Laterne-Emoji
+        )
         self._last_move = None
         self.view_radius = view_radius
         self.num_torches = num_torches
