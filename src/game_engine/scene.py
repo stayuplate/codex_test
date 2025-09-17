@@ -64,8 +64,11 @@ class TextScene(Scene):
                 user_input = input(prompt)
             self.process_command(user_input)
             return True
-        print(f"{self.color}[DEBUG] process_command nicht vorhanden\033[0m")
-        return False
+        print(
+            f"{self.color}[DEBUG] process_command nicht vorhanden,"
+            f" delegiere an Scene.handle_input()\033[0m"
+        )
+        return super().handle_input()
 
     def update(self, delta_time: float) -> None:
         # Standardmäßig keine Logik, kann von Kindklassen überschrieben werden
