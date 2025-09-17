@@ -102,7 +102,9 @@ class GameApp:
 
                 proceed = scene.handle_input()
                 if not self._running:
-                    scene.render()
+                    current = self.current_scene()
+                    if current is not None:
+                        current.render()
                     break
 
                 if proceed is False:
@@ -114,10 +116,20 @@ class GameApp:
                 delta = now - prev_time
                 prev_time = now
 
+                scene = self.current_scene()
+                if scene is None:
+                    continue
+
                 scene.update(delta)
                 if not self._running:
-                    scene.render()
+                    current = self.current_scene()
+                    if current is not None:
+                        current.render()
                     break
+
+                scene = self.current_scene()
+                if scene is None:
+                    continue
 
                 scene.render()
 
