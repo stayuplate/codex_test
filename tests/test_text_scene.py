@@ -71,3 +71,22 @@ def test_text_scene_handle_input_with_fake_app():
     assert fake_app.prompts == [expected_prompt]
     assert scene.processed_commands == ["look around"]
     assert result is True
+
+
+def test_text_scene_render_uses_app_display(capsys):
+    output_messages = []
+
+    class DisplayingApp:
+        def display(self, message: str) -> None:
+            output_messages.append(message)
+
+    scene = SimpleTextScene(name="RenderScene")
+    scene.app = DisplayingApp()
+
+    scene.render()
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert output_messages[0] == "\033[2J\033[H"
+    assert output_messages[-1] == f"{scene.color}{scene.get_display_text()}\033[0m"
+    assert all(isinstance(message, str) for message in output_messages)

@@ -100,3 +100,38 @@ def test_scene_replacement_during_update_renders_new_scene_and_updates_next_fram
     assert events.count("new.render") >= 2
     assert events.count("new.update") == 1
     assert events[-1] == "new.render"
+
+
+def test_game_app_respects_injected_output(capsys):
+    messages = []
+
+    app = GameApp(output=messages.append)
+
+    class StoppingScene(Scene):
+        def __init__(self):
+            super().__init__(name="Stopper")
+            self.render_calls = 0
+
+        def render(self) -> None:
+            self.render_calls += 1
+            app_ref = getattr(self, "app", None)
+            if app_ref is not None:
+                app_ref.display(f"render-{self.render_calls}")
+            else:  # pragma: no cover - fallback when no app is attached
+                print(f"render-{self.render_calls}")
+
+        def handle_input(self) -> bool:
+            app_ref = getattr(self, "app", None)
+            if app_ref is not None:
+                app_ref.stop()
+            return False
+
+    app.push_scene(StoppingScene())
+    app.run()
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert messages[0] == "[DEBUG] GameApp.run() gestartet"
+    assert "[DEBUG] Erste Szene vorhanden, render() wird aufgerufen" in messages
+    assert messages.count("render-1") == 1
+    assert messages.count("render-2") == 1
