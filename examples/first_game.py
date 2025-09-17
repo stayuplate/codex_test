@@ -98,8 +98,13 @@ class CrystalCollectorScene(TextScene):
         forbidden = {self.player}
         self.crystals = self._spawn_positions(self.total_crystals, forbidden)
         forbidden = forbidden | self.crystals
-        hazard_count = max(1, self.total_crystals // 2)
-        self.hazards = self._spawn_positions(hazard_count, forbidden)
+        available_tiles = self.width * self.height - len(forbidden)
+        hazard_target = max(1, self.total_crystals // 2)
+        hazard_count = min(hazard_target, available_tiles)
+        if hazard_count == 0:
+            self.hazards = set()
+        else:
+            self.hazards = self._spawn_positions(hazard_count, forbidden)
 
         self.message = "Collect all crystals before your energy runs out!"
 
