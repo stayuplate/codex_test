@@ -7,6 +7,14 @@ class Scene:
     def __init__(self, name: str = "Scene"):
         self.name = name
 
+    def on_enter(self) -> None:
+        """Default no-op hook run when the scene is pushed onto a GameApp."""
+        pass
+
+    def render(self) -> None:
+        """Default no-op hook used by GameApp to draw the active scene."""
+        pass
+
     def on_exit(self) -> None:
         pass
 
