@@ -79,6 +79,22 @@ MOVES: Sequence[Move] = (
 )
 
 
+ARROW_KEY_MAPPING = {
+    "\x1b[A": MOVES[0],  # Up arrow -> north (ANSI escape)
+    "\x1bOA": MOVES[0],
+    "\x1b[D": MOVES[1],  # Left arrow -> west
+    "\x1bOD": MOVES[1],
+    "\x1b[B": MOVES[2],  # Down arrow -> south
+    "\x1bOB": MOVES[2],
+    "\x1b[C": MOVES[3],  # Right arrow -> east
+    "\x1bOC": MOVES[3],
+}
+
+MOVE_HELP_TEXT = (
+    "Use W/A/S/D or the arrow keys to move, H for a hint, R to restart, or Q to quit."
+)
+
+
 class LanternMazeScene(TextScene):
     EXPLORATION_POINTS = 2
     TORCH_POINTS = 35
@@ -394,7 +410,7 @@ class LanternMazeScene(TextScene):
         rows.append(f"{STATUS}Turns taken: {self.turn_count}    Score: {self.score}{RESET}")
         rows.append(f"{MSG}{self.message}{RESET}")
         rows.append(
-            f"{CMD}Commands: W/A/S/D to move, H for a hint, R to restart, Q to quit.{RESET}"
+            f"{CMD}Commands: W/A/S/D or arrow keys to move, H for a hint, R to restart, Q to quit.{RESET}"
         )
         return "\n".join(rows)
 
@@ -405,9 +421,10 @@ class LanternMazeScene(TextScene):
         if self.app is None:
             raise RuntimeError("Scene is not attached to an application.")
 
+        raw_command = command
         command = command.strip().lower()
         if not command:
-            self.message = "Use W/A/S/D to move, H for a hint, R to restart, or Q to quit."
+            self.message = MOVE_HELP_TEXT
             return
 
         if command in {"q", "quit", "exit"}:
@@ -425,7 +442,9 @@ class LanternMazeScene(TextScene):
             return
 
         move = None
-        if command in {"w", "a", "s", "d"}:
+        if raw_command in ARROW_KEY_MAPPING:
+            move = ARROW_KEY_MAPPING[raw_command]
+        elif command in {"w", "a", "s", "d"}:
             mapping = {"w": MOVES[0], "a": MOVES[1], "s": MOVES[2], "d": MOVES[3]}
             move = mapping[command]
         else:
@@ -434,9 +453,7 @@ class LanternMazeScene(TextScene):
                     move = candidate
                     break
         if move is None:
-            self.message = (
-                "Unknown command. Use W, A, S, D to move, H for a hint, R to restart, or Q to quit."
-            )
+            self.message = f"Unknown command. {MOVE_HELP_TEXT}"
             return
 
         self._attempt_move(move)
