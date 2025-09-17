@@ -4,6 +4,13 @@ from pathlib import Path
 
 import pytest
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC_DIR = PROJECT_ROOT / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
+from game_engine.app import GameApp
+
 
 @pytest.fixture
 def lantern_maze_module():
@@ -113,3 +120,28 @@ def test_hint_guides_toward_torches_then_exit(lantern_maze_module):
     scene.process_command("h")
     assert "exit" in scene.message
     assert scene.exit in scene._discovered
+
+
+def test_arrow_key_sequences_move_player(monkeypatch, lantern_maze_module):
+    scene = lantern_maze_module.LanternMazeScene(num_torches=0, num_traps=0, rng_seed=7)
+    move, target = _open_move(scene, lantern_maze_module.MOVES)
+
+    arrow_sequence = None
+    for sequence, mapped_move in lantern_maze_module.ARROW_KEY_MAPPING.items():
+        if mapped_move == move:
+            arrow_sequence = sequence
+            break
+
+    assert arrow_sequence is not None, "Expected an arrow key mapping for the chosen move."
+
+    commands = iter([arrow_sequence, "q"])
+
+    def provider(prompt: str) -> str:
+        return next(commands)
+
+    app = GameApp(input_provider=provider, output=lambda _: None)
+    app.push_scene(scene)
+
+    app.run()
+
+    assert scene.player == target
