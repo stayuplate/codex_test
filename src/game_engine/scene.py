@@ -56,7 +56,12 @@ class TextScene(Scene):
         # Liest Benutzereingabe und verarbeitet sie, falls process_command existiert
         if hasattr(self, "process_command"):
             # Farbiges Prompt
-            user_input = input(f"{self.color}{self.prompt}\033[0m ")
+            prompt = f"{self.color}{self.prompt}\033[0m "
+            app = getattr(self, "app", None)
+            if app is not None:
+                user_input = app.get_input(prompt)
+            else:
+                user_input = input(prompt)
             self.process_command(user_input)
             return True
         print(f"{self.color}[DEBUG] process_command nicht vorhanden\033[0m")
