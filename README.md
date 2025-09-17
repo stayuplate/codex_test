@@ -82,8 +82,6 @@ python examples/first_game.py
 
 ## 🕹️ Eigene Spiele erstellen
 
-dio).
-
 1. **Umgebung aufsetzen:** Erweitere die Basisklassen (`GameApp`, `Scene` etc.) für dein Spiel.
 2. **Gameplay designen:** Füge Objekte und Logik mit den Modulsystemen hinzu (Physik, Rendering, Audio ...).
 3. **Testen & Spaß haben:** Starte dein Spiel und bring deine Ideen zum Leben!
