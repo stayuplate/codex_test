@@ -565,7 +565,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Optional[Sequence[str]] = None) -> None:
     args = build_parser().parse_args(argv)
     scene = LanternMazeScene(view_radius=args.view_radius, num_torches=args.torches, num_traps=args.traps)
-    app = GameApp()
+    app = GameApp(use_raw_input=True)
     app.push_scene(scene)
     app.run()
 

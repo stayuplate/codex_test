@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import sys
 import time
 from typing import Callable, List, Optional
@@ -23,13 +24,19 @@ class GameApp:
         input_provider: Optional[InputProvider] = None,
         output: Optional[OutputHandler] = None,
         clear_function: Optional[ClearFunction] = None,
+        use_raw_input: bool = False,
     ) -> None:
         self.target_fps = target_fps
+        self._custom_input_provider = input_provider is not None
         self.input_provider = input_provider or input
         self.output = output or print
         self.clear_function = clear_function
         self._scene_stack: List[Scene] = []
         self._running: bool = False
+        self._raw_input_enabled = False
+
+        if not self._custom_input_provider and use_raw_input:
+            self.enable_raw_input()
 
     # -- Scene stack ----------------------------------------------------
     def push_scene(self, scene: Scene) -> None:
@@ -61,6 +68,188 @@ class GameApp:
 
     def get_input(self, prompt: str = "> ") -> str:
         return self.input_provider(prompt)
+
+    # -- Raw input helpers -----------------------------------------------
+    def enable_raw_input(self) -> bool:
+        """Switch to the raw input provider if the environment supports it."""
+
+        if self._custom_input_provider:
+            return False
+
+        provider = self._create_raw_input_provider()
+        if provider is None:
+            self.disable_raw_input()
+            return False
+
+        self.input_provider = provider
+        self._raw_input_enabled = True
+        return True
+
+    def disable_raw_input(self) -> None:
+        if self._custom_input_provider:
+            return
+
+        self.input_provider = input
+        self._raw_input_enabled = False
+
+    def _stdin_is_tty(self) -> bool:
+        stream = getattr(sys, "stdin", None)
+        if stream is None or not hasattr(stream, "isatty"):
+            return False
+        try:
+            return bool(stream.isatty())
+        except io.UnsupportedOperation:
+            return False
+
+    def _create_raw_input_provider(self) -> Optional[InputProvider]:
+        if not self._stdin_is_tty():
+            return None
+
+        if sys.platform == "win32":
+            return self._create_windows_raw_input_provider()
+        return self._create_posix_raw_input_provider()
+
+    def _create_posix_raw_input_provider(self) -> Optional[InputProvider]:
+        stream = getattr(sys, "stdin", None)
+        if stream is None or not hasattr(stream, "fileno"):
+            return None
+
+        try:
+            fd = stream.fileno()
+        except (io.UnsupportedOperation, AttributeError, ValueError, OSError):
+            return None
+
+        def provider(prompt: str = "> ") -> str:
+            import os
+            import select
+            import termios
+            import tty
+
+            stdout = getattr(sys, "stdout", None)
+            if stdout is not None:
+                stdout.write(prompt)
+                stdout.flush()
+
+            old_settings = termios.tcgetattr(fd)
+            try:
+                tty.setraw(fd)
+                buffer: List[str] = []
+                while True:
+                    data = os.read(fd, 1)
+                    if not data:
+                        raise EOFError
+
+                    char = data.decode("utf-8", "ignore")
+                    if not char:
+                        continue
+
+                    if char in ("\r", "\n"):
+                        if stdout is not None:
+                            stdout.write("\n")
+                            stdout.flush()
+                        return "".join(buffer)
+
+                    if char == "\x03":
+                        raise KeyboardInterrupt
+
+                    if char in ("\x7f", "\b"):
+                        if buffer:
+                            buffer.pop()
+                            if stdout is not None:
+                                stdout.write("\b \b")
+                                stdout.flush()
+                        continue
+
+                    if char == "\x04":  # Ctrl-D
+                        raise EOFError
+
+                    if char == "\x1b":
+                        sequence = [char]
+                        while True:
+                            ready, _, _ = select.select([fd], [], [], 0.0001)
+                            if not ready:
+                                break
+                            extra = os.read(fd, 1)
+                            if not extra:
+                                break
+                            decoded = extra.decode("utf-8", "ignore")
+                            if not decoded:
+                                break
+                            sequence.append(decoded)
+                            if decoded.isalpha() or decoded in "~":
+                                break
+                            if len(sequence) >= 6:
+                                break
+                        return "".join(sequence)
+
+                    buffer.append(char)
+                    if stdout is not None:
+                        stdout.write(char)
+                        stdout.flush()
+            finally:
+                termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+
+        return provider
+
+    def _create_windows_raw_input_provider(self) -> Optional[InputProvider]:
+        try:
+            import msvcrt
+        except ImportError:  # pragma: no cover - platform specific
+            return None
+
+        mapping = {
+            "H": "\x1b[A",
+            "P": "\x1b[B",
+            "K": "\x1b[D",
+            "M": "\x1b[C",
+        }
+
+        def provider(prompt: str = "> ") -> str:
+            stdout = getattr(sys, "stdout", None)
+            if stdout is not None:
+                stdout.write(prompt)
+                stdout.flush()
+
+            buffer: List[str] = []
+            while True:
+                char = msvcrt.getwch()
+
+                if char in ("\r", "\n"):
+                    if stdout is not None:
+                        stdout.write("\n")
+                        stdout.flush()
+                    return "".join(buffer)
+
+                if char == "\x03":
+                    raise KeyboardInterrupt
+
+                if char in ("\b", "\x7f"):
+                    if buffer:
+                        buffer.pop()
+                        if stdout is not None:
+                            stdout.write("\b \b")
+                            stdout.flush()
+                    continue
+
+                if char in ("\x00", "\xe0"):
+                    code = msvcrt.getwch()
+                    sequence = mapping.get(code)
+                    if sequence is not None:
+                        return sequence
+                    continue
+
+                if char == "\x1a":  # Ctrl-Z behaves like EOF in Windows terminals
+                    raise EOFError
+
+                if char == "\x1b":
+                    return char
+
+                buffer.append(char)
+                if stdout is not None:
+                    stdout.write(char)
+                    stdout.flush()
+
+        return provider
 
     def clear(self) -> None:
         if self.clear_function is not None:
