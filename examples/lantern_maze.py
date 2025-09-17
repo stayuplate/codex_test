@@ -232,7 +232,7 @@ class LanternMazeScene(TextScene):
                     neigh.append((nx, ny))
         return neigh
 
-    def _find_dead_ends(self) -> set[Position]:
+    def _find_dead_ends(self) -> Set[Position]:
         dead = set()
         for y in range(self.height):
             for x in range(self.width):
