@@ -7,6 +7,14 @@ class Scene:
     def __init__(self, name: str = "Scene"):
         self.name = name
 
+    def on_enter(self) -> None:
+        """Default no-op hook when the scene is pushed; override to react."""
+        pass
+
+    def render(self) -> None:
+        """Default no-op render hook; override to draw the active scene."""
+        pass
+
     def on_exit(self) -> None:
         pass
 
