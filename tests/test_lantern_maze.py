@@ -52,6 +52,20 @@ def test_missing_required_tiles_raise_value_error(monkeypatch, lantern_maze_modu
         lantern_maze_module.LanternMazeScene()
 
 
+def test_process_command_without_app_raises_runtime_error(lantern_maze_module):
+    scene = lantern_maze_module.LanternMazeScene()
+
+    with pytest.raises(RuntimeError, match=r"Scene is not attached to an application\."):
+        scene.process_command("h")
+
+
+def test_hint_without_app_raises_runtime_error(lantern_maze_module):
+    scene = lantern_maze_module.LanternMazeScene()
+
+    with pytest.raises(RuntimeError, match=r"Scene is not attached to an application\."):
+        scene._hint()
+
+
 def test_exploring_new_tile_awards_points(lantern_maze_module):
     scene = lantern_maze_module.LanternMazeScene(num_torches=0, num_traps=0, rng_seed=1)
     scene.app = DummyApp()

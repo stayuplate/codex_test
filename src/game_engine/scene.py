@@ -1,11 +1,15 @@
-# scene.py
-# Platzhalter für Scene-Klasse oder verwandte Logik
+from __future__ import annotations
 
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:  # pragma: no cover - imported for type checking only
+    from .app import GameApp
 
 
 class Scene:
     def __init__(self, name: str = "Scene"):
         self.name = name
+        self.app: Optional[GameApp] = None
 
     def on_enter(self) -> None:
         """Hook invoked when the scene is pushed onto a GameApp; override if needed."""
@@ -25,7 +29,14 @@ class Scene:
         pass
 
 class TextScene(Scene):
-    def __init__(self, name: str = "TextScene", prompt: str = "> ", color: str = "\033[96m", border: bool = True, icon: str = "🕹️"):
+    def __init__(
+        self,
+        name: str = "TextScene",
+        prompt: str = "> ",
+        color: str = "\033[96m",
+        border: bool = True,
+        icon: str = "🕹️",
+    ):
         super().__init__(name=name)
         self.prompt = prompt
         self.color = color  # ANSI-Farbe für Szenentitel/Text
@@ -57,7 +68,7 @@ class TextScene(Scene):
         if hasattr(self, "process_command"):
             # Farbiges Prompt
             prompt = f"{self.color}{self.prompt}\033[0m "
-            app = getattr(self, "app", None)
+            app = self.app
             if app is not None:
                 user_input = app.get_input(prompt)
             else:
