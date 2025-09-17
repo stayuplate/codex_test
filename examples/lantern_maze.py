@@ -108,8 +108,11 @@ class LanternMazeScene(TextScene):
                     elif tile == "E":
                         self.exit = (x, y)
             self._layout.append(row_tiles)
+        if self.start is None or self.exit is None:
+            raise ValueError("Map must define both a start (P) and exit (E) tile.")
         # Erreichbare Felder berechnen (Flood-Fill/BFS)
         from collections import deque
+
         def reachable_from(start):
             visited = set()
             queue = deque([start])
@@ -119,8 +122,8 @@ class LanternMazeScene(TextScene):
                     continue
                 visited.add(pos)
                 x, y = pos
-                for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
-                    nx, ny = x+dx, y+dy
+                for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                    nx, ny = x + dx, y + dy
                     if 0 <= nx < self.width and 0 <= ny < self.height:
                         if self._layout[ny][nx] == "#":
                             continue
@@ -128,10 +131,9 @@ class LanternMazeScene(TextScene):
                         if npos not in visited:
                             queue.append(npos)
             return visited
+
         reachable = reachable_from(self.start)
         self._reachable_positions = reachable - {self.start, self.exit}
-        if self.start is None or self.exit is None:
-            raise ValueError("Map must define both a start (P) and exit (E) tile.")
         if self.exit not in reachable:
             raise ValueError("Exit is not reachable from start! Please check the map layout.")
         self.total_torches = num_torches
