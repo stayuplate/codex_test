@@ -7,7 +7,9 @@ Run the script directly to start the game:
     python examples/lantern_maze.py
 
 Guide the wanderer through a mysterious maze while capturing floating lights
-("torches").  The exit only opens once every light has been collected.
+("torches").  Earn points for exploring new territory, collect every light to
+unlock the exit, and ask your lantern for a hint (press ``H``) when you feel
+lost.
 """
 
 from __future__ import annotations
@@ -78,7 +80,19 @@ MOVES: Sequence[Move] = (
 
 
 class LanternMazeScene(TextScene):
-    def __init__(self, *, view_radius: int = 2, num_torches: int = 2, num_traps: int = 2) -> None:
+    EXPLORATION_POINTS = 2
+    TORCH_POINTS = 35
+    TRAP_PENALTY = 10
+    EXIT_BONUS = 75
+
+    def __init__(
+        self,
+        *,
+        view_radius: int = 2,
+        num_torches: int = 2,
+        num_traps: int = 2,
+        rng_seed: Optional[int] = None,
+    ) -> None:
         self.prompt = "Move:"
         self.border = True
         self.color = "\033[95m"  # Lila
@@ -146,7 +160,16 @@ class LanternMazeScene(TextScene):
         self._visited = set()
         self.turn_count = 0
         self.message = "Collect every wandering light to open the exit."
-        self._random = random.Random()
+        self._ambient_messages = (
+            "A chill breeze twirls the lantern's flame.",
+            "Distant chimes echo through the labyrinth.",
+            "Faint footprints glow briefly on the floor before fading.",
+            "You sense the maze shifting ever so slightly around you.",
+            "The stone walls pulse with a low, otherworldly hum.",
+        )
+        self._random = random.Random(rng_seed)
+        self.score = 0
+        self._last_hint_turn: Optional[int] = None
         self.reset_world()
 
     # -- Scene lifecycle -------------------------------------------------
@@ -155,7 +178,6 @@ class LanternMazeScene(TextScene):
 
     # -- Setup -----------------------------------------------------------
     def reset_world(self) -> None:
-        import random
         self.player = self.start  # type: ignore[assignment]
         # Zufällige Torches und Fallen
         available = list(self._reachable_positions)
@@ -163,15 +185,12 @@ class LanternMazeScene(TextScene):
             raise ValueError("Not enough reachable positions for torches and traps!")
 
         # Intelligent placement: traps prefer dead-ends, torches at moderate distance
-        def distance(a, b):
-            return abs(a[0]-b[0]) + abs(a[1]-b[1])
-
         dead_ends = list(self._find_dead_ends())
         traps = set()
         torches = set()
 
         # Place traps in dead-ends first
-        random.shuffle(dead_ends)
+        self._random.shuffle(dead_ends)
         for pos in dead_ends:
             if len(traps) >= self.total_traps:
                 break
@@ -203,6 +222,8 @@ class LanternMazeScene(TextScene):
         self._visited = {self.player}
         self.turn_count = 0
         self.message = "Collect every wandering light to open the exit."
+        self.score = 0
+        self._last_hint_turn = None
         self._reveal_area(self.player)
 
     # -- Helpers ---------------------------------------------------------
@@ -233,6 +254,9 @@ class LanternMazeScene(TextScene):
                 if self._layout[ny][nx] != '#':
                     neigh.append((nx, ny))
         return neigh
+
+    def _distance(self, a: Position, b: Position) -> int:
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
     def _find_dead_ends(self) -> Set[Position]:
         dead = set()
@@ -266,6 +290,50 @@ class LanternMazeScene(TextScene):
             else:
                 bar += "."
         return f"\033[93mLights: [{bar}] {captured}/{self.total_torches} captured{RESET}"
+
+    def _direction_description(self, delta: Position) -> str:
+        dx, dy = delta
+        parts: List[str] = []
+        if dy < 0:
+            parts.append("north")
+        elif dy > 0:
+            parts.append("south")
+        if dx > 0:
+            parts.append("east")
+        elif dx < 0:
+            parts.append("west")
+        if not parts:
+            return "here"
+        return "-".join(parts)
+
+    def _hint(self) -> None:
+        if self.app is None:
+            raise RuntimeError("Scene is not attached to an application.")
+
+        if self._last_hint_turn is not None and self.turn_count == self._last_hint_turn:
+            self.message = "The lantern's glow has nothing new to show you until you move."
+            return
+
+        if self._torches:
+            target_pool = self._torches
+            target_label = "a remaining light"
+        else:
+            target_pool = {self.exit}
+            target_label = "the exit"
+
+        if not target_pool:
+            self.message = "The maze is quiet; there is nothing more to seek."
+            return
+
+        nearest = min(target_pool, key=lambda pos: self._distance(self.player, pos))
+        direction = self._direction_description((nearest[0] - self.player[0], nearest[1] - self.player[1]))
+        self._reveal_area(nearest)
+        self._last_hint_turn = self.turn_count
+
+        if direction == "here":
+            self.message = f"Your lantern hums—you are already standing atop {target_label}."
+        else:
+            self.message = f"A faint whisper guides you {direction} toward {target_label}."
 
     def _format_tile(self, position: Position) -> str:
         PLAYER = "\033[96m\033[1m◉\033[0m"
@@ -323,9 +391,11 @@ class LanternMazeScene(TextScene):
         rows.append(border)
         rows.append(self._describe_torches())
         # Farbige Statuszeile
-        rows.append(f"{STATUS}Turns taken: {self.turn_count}{RESET}")
+        rows.append(f"{STATUS}Turns taken: {self.turn_count}    Score: {self.score}{RESET}")
         rows.append(f"{MSG}{self.message}{RESET}")
-        rows.append(f"{CMD}Commands: W/A/S/D to move, R to restart, Q to quit.{RESET}")
+        rows.append(
+            f"{CMD}Commands: W/A/S/D to move, H for a hint, R to restart, Q to quit.{RESET}"
+        )
         return "\n".join(rows)
 
     # Kompass entfernt
@@ -337,7 +407,7 @@ class LanternMazeScene(TextScene):
 
         command = command.strip().lower()
         if not command:
-            self.message = "Use W/A/S/D to move, R to restart, or Q to quit."
+            self.message = "Use W/A/S/D to move, H for a hint, R to restart, or Q to quit."
             return
 
         if command in {"q", "quit", "exit"}:
@@ -350,6 +420,10 @@ class LanternMazeScene(TextScene):
             self.message = "You reignite your lantern at the maze entrance."
             return
 
+        if command in {"h", "hint", "?"}:
+            self._hint()
+            return
+
         move = None
         if command in {"w", "a", "s", "d"}:
             mapping = {"w": MOVES[0], "a": MOVES[1], "s": MOVES[2], "d": MOVES[3]}
@@ -360,14 +434,15 @@ class LanternMazeScene(TextScene):
                     move = candidate
                     break
         if move is None:
-            self.message = "Unknown command. Use W, A, S, D to move, R to restart, or Q to quit."
+            self.message = (
+                "Unknown command. Use W, A, S, D to move, H for a hint, R to restart, or Q to quit."
+            )
             return
 
         self._attempt_move(move)
 
     # -- Game logic ------------------------------------------------------
     def _attempt_move(self, move: Move) -> None:
-        import random
         if self.app is None:
             return
 
@@ -383,8 +458,11 @@ class LanternMazeScene(TextScene):
 
         self.player = new_position
         self.turn_count += 1
+        first_visit = new_position not in self._visited
         self._visited.add(new_position)
         self._reveal_area(new_position)
+        if first_visit:
+            self.score += self.EXPLORATION_POINTS
 
         if new_position in self._traps:
             trap_msgs = [
@@ -394,7 +472,8 @@ class LanternMazeScene(TextScene):
                 "A magical glyph teleports you to the start!",
                 "You triggered a snare! Back to the entrance."
             ]
-            self.message = random.choice(trap_msgs)
+            self.score = max(0, self.score - self.TRAP_PENALTY)
+            self.message = self._random.choice(trap_msgs)
             self.player = self.start
             self._visited.add(self.player)
             self._reveal_area(self.player)
@@ -410,14 +489,16 @@ class LanternMazeScene(TextScene):
             ]
             self._torches.remove(new_position)
             # Funkenregen-Animation (kurz in der Statuszeile)
-            import time, sys
-            sparks = ["✨", "❇️", "❈", "✴️", "✳️"]
-            for s in sparks:
-                print(f"\033[93m{s*8}\033[0m", end="\r", flush=True)
-                time.sleep(0.07)
-            print(" "*16, end="\r", flush=True)
+            import time
+            if sys.stdout.isatty():
+                sparks = ["✨", "❇️", "❈", "✴️", "✳️"]
+                for s in sparks:
+                    print(f"\033[93m{s*8}\033[0m", end="\r", flush=True)
+                    time.sleep(0.07)
+                print(" "*16, end="\r", flush=True)
+            self.score += self.TORCH_POINTS
             if self._torches:
-                self.message = random.choice(torch_msgs)
+                self.message = self._random.choice(torch_msgs)
             else:
                 self.message = "The final light joins your lantern. The exit radiates vividly!"
             return
@@ -426,11 +507,19 @@ class LanternMazeScene(TextScene):
             if self._torches:
                 self.message = "The crystalline gate remains sealed. Collect every light first."
             else:
-                self.message = f"You escape the maze in {self.turn_count} turns!"
+                self.score += self.EXIT_BONUS
+                self.message = (
+                    f"You escape the maze in {self.turn_count} turns with a score of {self.score}!"
+                )
                 self.app.stop()
             return
 
-        self.message = f"You move {move.label}."
+        base = f"You move {move.label}."
+        if first_visit and self._ambient_messages and self.turn_count % 3 == 0:
+            ambient = self._random.choice(self._ambient_messages)
+            self.message = f"{base} {ambient}"
+        else:
+            self.message = base
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Explore the glowing Lantern Maze.")
