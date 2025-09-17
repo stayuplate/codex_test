@@ -140,12 +140,12 @@ game-engine/
 ```plaintext
 game-engine/
 │
-├── src/         # Engine-Quellcode
+├── .git/        # Git-Metadaten
+├── .github/     # Repository-Workflows & Vorlagen
 ├── examples/    # Beispielspiele
-├── assets/      # Gemeinsame Assets
-├── docs/        # Dokumentation
+├── src/         # Engine-Quellcode
 ├── tests/       # Tests
-├── build/       # Build-Output (ignored)
+├── .gitignore   # Git-Ignore-Regeln
 └── README.md    # Übersicht
 ```
 
