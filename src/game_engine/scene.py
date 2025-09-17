@@ -45,23 +45,29 @@ class TextScene(Scene):
 
     def render(self) -> None:
         # Bildschirm löschen (funktioniert in den meisten Terminals)
-        print("\033[2J\033[H", end="")
+        app = getattr(self, "app", None)
+        if app is not None:
+            output = app.display
+            output("\033[2J\033[H")
+        else:
+            output = print
+            print("\033[2J\033[H", end="")
         # Szenentitel mit Farbe und Icon
         title = f"{self.color}{self.icon} {self.name} {self.icon}\033[0m"
         if self.border:
             border_line = f"{self.color}" + "═" * (len(self.name) + 8) + "\033[0m"
-            print(border_line)
-            print(title)
-            print(border_line)
+            output(border_line)
+            output(title)
+            output(border_line)
         else:
-            print(title)
+            output(title)
         # Szenentext
         if hasattr(self, "get_display_text"):
             text = self.get_display_text()
             # Optional: Text farbig
-            print(f"{self.color}{text}\033[0m")
+            output(f"{self.color}{text}\033[0m")
         else:
-            print(f"{self.color}[DEBUG] get_display_text nicht vorhanden\033[0m")
+            output(f"{self.color}[DEBUG] get_display_text nicht vorhanden\033[0m")
 
     def handle_input(self) -> bool:
         # Liest Benutzereingabe und verarbeitet sie, falls process_command existiert
