@@ -7,6 +7,14 @@ class Scene:
     def __init__(self, name: str = "Scene"):
         self.name = name
 
+    def on_enter(self) -> None:
+        """Hook invoked when the scene is pushed onto a GameApp; override if needed."""
+        pass
+
+    def render(self) -> None:
+        """Hook used by GameApp to draw the active scene; override in subclasses."""
+        pass
+
     def on_exit(self) -> None:
         pass
 
