@@ -125,6 +125,7 @@ int main() {
 |------|--------------|
 | `examples/first_game.py` | 🟦 **Crystal Collector**<br>Ein Grid-Abenteuer: Sammle Kristalle, meide Gefahren! |
 | `examples/lantern_maze.py` | 🟡 **Lantern Maze**<br>Nebellabyrinth: Fange Lichter, finde den Ausgang! |
+| `examples/engine_showcase.py` | ⚙️ **Engine Showcase**<br>Szenenwechsel, Live-Dashboard & Raw-Input-Demo. |
 
 Starte ein Demo mit:
 ```bash
